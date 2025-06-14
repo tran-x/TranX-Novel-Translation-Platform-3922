@@ -5,10 +5,9 @@ import {
   faBook, 
   faUser, 
   faCalendar, 
-  faGlobe, 
   faEdit, 
   faPlus, 
-  faHeart 
+  faBookOpen 
 } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { useUser } from '../contexts/UserContext';
@@ -16,7 +15,7 @@ import { useUser } from '../contexts/UserContext';
 const NovelPage = () => {
   const { novelSlug } = useParams();
   const { user, isTranslator } = useUser();
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [isInReadingList, setIsInReadingList] = useState(false);
   const [showAllChapters, setShowAllChapters] = useState(false);
 
   // Mock data - in real app, fetch based on novelSlug
@@ -133,15 +132,15 @@ const NovelPage = () => {
 
                     {user && (
                       <button
-                        onClick={() => setIsFollowing(!isFollowing)}
+                        onClick={() => setIsInReadingList(!isInReadingList)}
                         className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
-                          isFollowing 
-                            ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'
+                          isInReadingList 
+                            ? 'bg-green-50 text-green-600 border border-green-200 hover:bg-green-100'
                             : 'bg-black text-white hover:bg-gray-800'
                         }`}
                       >
-                        <FontAwesomeIcon icon={faHeart} className={`mr-2 ${isFollowing ? 'text-red-600' : ''}`} />
-                        {isFollowing ? 'Following' : 'Follow'}
+                        <FontAwesomeIcon icon={isInReadingList ? faBookOpen : faPlus} className="mr-2" />
+                        {isInReadingList ? 'In Reading List' : 'Add to Reading List'}
                       </button>
                     )}
                   </div>

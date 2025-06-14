@@ -8,7 +8,11 @@ import {
   faCog, 
   faEdit, 
   faLock,
-  faTimes
+  faTimes,
+  faBookmark,
+  faComment,
+  faPlus,
+  faMinus
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../contexts/UserContext';
@@ -23,40 +27,56 @@ const ChapterPage = () => {
     theme: 'light'
   });
   const [comment, setComment] = useState('');
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [showFootnotes, setShowFootnotes] = useState(true);
+  const [paragraphComments, setParagraphComments] = useState({});
+  const [showCommentForm, setShowCommentForm] = useState(null);
 
   // Mock data
   const novel = {
     title: "Coiling Dragon",
     slug: "coiling-dragon",
     translator: "RWX",
-    translatorId: "rwx"
+    translatorId: "rwx",
+    volumes: [
+      { name: "Volume 1: The Ring Awakens", chapters: [1, 2, 3, 4, 5] },
+      { name: "Volume 2: Coiling Dragon Ring", chapters: [6, 7, 8, 9, 10] },
+      { name: "Volume 3: Mountain Range", chapters: [11, 12, 13, 14, 15] }
+    ]
   };
 
   const chapter = {
     number: parseInt(chapterNumber),
     title: "The Dragonblood Warrior Clan",
-    content: `<p>On the Yulan continent, the empires of the north and south have been at war for countless years. In the eastern regions of the Yulan continent, there was a small, unremarkable town called Wushan town.</p>
+    content: `<p data-paragraph="1">On the Yulan continent, the empires of the north and south have been at war for countless years<sup><a href="#footnote-1" class="footnote-link">1</a></sup>. In the eastern regions of the Yulan continent, there was a small, unremarkable town called Wushan town.</p>
 
-    <p>Although Wushan town was unremarkable, it was extremely ancient. The town's population was roughly fifty thousand people, and it possessed a history of roughly five thousand years. In the back mountains of Wushan town, there was an extremely ancient clan – the Baruch clan.</p>
+    <p data-paragraph="2">Although Wushan town was unremarkable, it was extremely ancient. The town's population was roughly fifty thousand people, and it possessed a history of roughly five thousand years. In the back mountains of Wushan town, there was an extremely ancient clan – the Baruch clan<sup><a href="#footnote-2" class="footnote-link">2</a></sup>.</p>
 
-    <p>The Baruch clan possessed a history of roughly five thousand years as well, the same as Wushan town. What's more, the history of the Baruch clan was inextricably linked with that of Wushan town. But now, the Baruch clan was in dire straits.</p>
+    <p data-paragraph="3">The Baruch clan possessed a history of roughly five thousand years as well, the same as Wushan town. What's more, the history of the Baruch clan was inextricably linked with that of Wushan town. But now, the Baruch clan was in dire straits.</p>
 
-    <p>Within the Baruch clan's manor, in the main hall.</p>
+    <p data-paragraph="4">Within the Baruch clan's manor, in the main hall.</p>
 
-    <p>"Father, our clan's situation is becoming more and more dire. We only have three or four hundred gold coins left. I'm afraid that in just two more years, we won't even be able to afford to hire those servants." A middle-aged man said respectfully to an old man with a head full of white hair.</p>`,
+    <p data-paragraph="5">"Father, our clan's situation is becoming more and more dire. We only have three or four hundred gold coins left. I'm afraid that in just two more years, we won't even be able to afford to hire those servants." A middle-aged man said respectfully to an old man with a head full of white hair.</p>`,
+    footnotes: [
+      { id: 1, text: "The Yulan continent has been in a state of perpetual warfare between the Holy Union in the north and the Dark Alliance in the south." },
+      { id: 2, text: "The Baruch clan was once known as the Dragonblood Warrior clan, famous throughout the continent." }
+    ],
     isLocked: false,
     publishedAt: new Date(),
     nextChapter: 2,
     prevChapter: null
   };
 
-  const chapters = Array.from({ length: 50 }, (_, i) => ({
-    number: i + 1,
-    title: `Chapter ${i + 1}: ${i === 0 ? 'The Dragonblood Warrior Clan' : 
-      i === 20 ? 'The Ernst Institute' : 
-      `Chapter Title ${i + 1}`}`,
-    isLocked: i > 30
-  }));
+  const allChapters = novel.volumes.flatMap(volume => 
+    volume.chapters.map(num => ({
+      number: num,
+      title: `Chapter ${num}: ${num === 1 ? 'The Dragonblood Warrior Clan' : 
+        num === 6 ? 'The Ernst Institute' : 
+        `Chapter Title ${num}`}`,
+      volume: volume.name,
+      isLocked: num > 10
+    }))
+  );
 
   const comments = [
     {
@@ -82,6 +102,81 @@ const ChapterPage = () => {
     setComment('');
   };
 
+  const handleParagraphComment = (paragraphId, commentText) => {
+    if (!commentText.trim()) return;
+    
+    setParagraphComments(prev => ({
+      ...prev,
+      [paragraphId]: [...(prev[paragraphId] || []), {
+        id: Date.now(),
+        user: user.username,
+        text: commentText,
+        timestamp: new Date()
+      }]
+    }));
+    setShowCommentForm(null);
+  };
+
+  const renderContentWithComments = (content) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(content, 'text/html');
+    const paragraphs = doc.querySelectorAll('p[data-paragraph]');
+    
+    return Array.from(paragraphs).map((p, index) => {
+      const paragraphId = p.getAttribute('data-paragraph');
+      const comments = paragraphComments[paragraphId] || [];
+      
+      return (
+        <div key={index} className="relative group mb-6">
+          <div 
+            className="paragraph-content"
+            dangerouslySetInnerHTML={{ __html: p.outerHTML }}
+          />
+          
+          {/* Paragraph comment button */}
+          {user && (
+            <button
+              onClick={() => setShowCommentForm(showCommentForm === paragraphId ? null : paragraphId)}
+              className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-100 hover:bg-gray-200 rounded-full p-1"
+            >
+              <FontAwesomeIcon icon={faComment} size="sm" />
+            </button>
+          )}
+          
+          {/* Comment form */}
+          {showCommentForm === paragraphId && (
+            <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+              <textarea
+                placeholder="Add a comment to this paragraph..."
+                className="w-full p-2 border border-gray-300 rounded text-sm"
+                rows={2}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleParagraphComment(paragraphId, e.target.value);
+                    e.target.value = '';
+                  }
+                }}
+              />
+            </div>
+          )}
+          
+          {/* Existing comments */}
+          {comments.length > 0 && (
+            <div className="mt-2 space-y-2">
+              {comments.map(comment => (
+                <div key={comment.id} className="bg-blue-50 p-2 rounded text-sm">
+                  <div className="font-medium text-blue-800">{comment.user}</div>
+                  <div className="text-gray-700">{comment.text}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    });
+  };
+
   return (
     <div className={`min-h-screen transition-colors ${
       readerSettings.theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-black'
@@ -101,6 +196,14 @@ const ChapterPage = () => {
             </Link>
 
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setIsBookmarked(!isBookmarked)}
+                className={`p-2 rounded-lg border border-gray-300 ${
+                  isBookmarked ? 'text-yellow-500' : 'text-gray-600 hover:text-black'
+                }`}
+              >
+                <FontAwesomeIcon icon={faBookmark} size="lg" />
+              </button>
               <button
                 onClick={() => setShowChapterList(!showChapterList)}
                 className="p-2 text-gray-600 hover:text-black rounded-lg border border-gray-300"
@@ -176,7 +279,32 @@ const ChapterPage = () => {
               </div>
             </div>
           ) : (
-            <div dangerouslySetInnerHTML={{ __html: chapter.content }} />
+            <div>
+              {renderContentWithComments(chapter.content)}
+              
+              {/* Footnotes */}
+              {showFootnotes && chapter.footnotes && chapter.footnotes.length > 0 && (
+                <div className="mt-12 pt-8 border-t border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold">Footnotes</h3>
+                    <button
+                      onClick={() => setShowFootnotes(!showFootnotes)}
+                      className="text-sm text-gray-600 hover:text-black"
+                    >
+                      <FontAwesomeIcon icon={showFootnotes ? faMinus : faPlus} className="mr-1" />
+                      {showFootnotes ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {chapter.footnotes.map(footnote => (
+                      <div key={footnote.id} id={`footnote-${footnote.id}`} className="text-sm">
+                        <span className="font-medium">{footnote.id}.</span> {footnote.text}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </motion.div>
 
@@ -272,7 +400,7 @@ const ChapterPage = () => {
         </div>
       </div>
 
-      {/* Chapter List Sidebar */}
+      {/* Chapter List Sidebar with Volumes */}
       <AnimatePresence>
         {showChapterList && (
           <>
@@ -301,22 +429,32 @@ const ChapterPage = () => {
                 </div>
               </div>
               <div className="p-4">
-                {chapters.map((chap) => (
-                  <Link
-                    key={chap.number}
-                    to={`/novel/${novelSlug}/chapter-${chap.number}`}
-                    className={`block p-3 rounded-lg mb-2 transition-colors ${
-                      chap.number === chapter.number
-                        ? 'bg-black text-white'
-                        : 'hover:bg-gray-100'
-                    }`}
-                    onClick={() => setShowChapterList(false)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{chap.title}</span>
-                      {chap.isLocked && <FontAwesomeIcon icon={faLock} size="sm" />}
+                {novel.volumes.map((volume, volumeIndex) => (
+                  <div key={volumeIndex} className="mb-4">
+                    <h4 className="font-medium text-gray-800 mb-2 px-2">{volume.name}</h4>
+                    <div className="space-y-1">
+                      {volume.chapters.map((chapterNum) => {
+                        const chapterData = allChapters.find(c => c.number === chapterNum);
+                        return (
+                          <Link
+                            key={chapterNum}
+                            to={`/novel/${novelSlug}/chapter-${chapterNum}`}
+                            className={`block p-3 rounded-lg transition-colors ${
+                              chapterNum === chapter.number
+                                ? 'bg-black text-white'
+                                : 'hover:bg-gray-100'
+                            }`}
+                            onClick={() => setShowChapterList(false)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-sm">{chapterData?.title}</span>
+                              {chapterData?.isLocked && <FontAwesomeIcon icon={faLock} size="sm" />}
+                            </div>
+                          </Link>
+                        );
+                      })}
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </motion.div>

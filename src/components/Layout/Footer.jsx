@@ -12,15 +12,14 @@ const Footer = () => {
               The premier platform for translated Chinese, Japanese, and Korean novels.
             </p>
           </div>
-          
           <div>
             <h4 className="font-medium text-black mb-4">For Readers</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/" className="text-gray-600 hover:text-black">Browse Novels</Link></li>
+              <li><Link to="/archive" className="text-gray-600 hover:text-black">Novel Archive</Link></li>
               <li><Link to="/register" className="text-gray-600 hover:text-black">Create Account</Link></li>
             </ul>
           </div>
-          
           <div>
             <h4 className="font-medium text-black mb-4">For Translators</h4>
             <ul className="space-y-2 text-sm">
@@ -28,7 +27,6 @@ const Footer = () => {
               <li><Link to="/translator-tools" className="text-gray-600 hover:text-black">Tools</Link></li>
             </ul>
           </div>
-          
           <div>
             <h4 className="font-medium text-black mb-4">Support</h4>
             <ul className="space-y-2 text-sm">
@@ -37,7 +35,6 @@ const Footer = () => {
             </ul>
           </div>
         </div>
-        
         <div className="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-600">
           <p>&copy; 2024 TranX. All rights reserved.</p>
         </div>

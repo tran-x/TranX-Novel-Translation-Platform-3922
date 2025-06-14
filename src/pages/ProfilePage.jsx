@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faUser, 
   faBook, 
   faCalendar, 
   faHeart, 
-  faCog 
+  faCog,
+  faEdit,
+  faSave,
+  faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import { useUser } from '../contexts/UserContext';
 
 const ProfilePage = () => {
   const { username } = useParams();
-  const { user } = useUser();
+  const { user, updateUser } = useUser();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('novels');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({});
 
   // Mock profile data
   const profile = {
@@ -23,6 +29,8 @@ const ProfilePage = () => {
     joinDate: new Date('2023-01-15'),
     bio: username === 'rwx' ? 'Professional translator specializing in Chinese web novels. Bringing you the best stories from the East.' : 'Avid reader of translated novels.',
     avatar: null,
+    location: username === 'rwx' ? 'United States' : 'Unknown',
+    website: username === 'rwx' ? 'https://rwxtranslations.com' : '',
     stats: {
       novelsTranslated: username === 'rwx' ? 3 : 0,
       chaptersTranslated: username === 'rwx' ? 245 : 0,
@@ -65,6 +73,39 @@ const ProfilePage = () => {
 
   const isOwnProfile = user?.username === username;
 
+  const handleEditProfile = () => {
+    setEditData({
+      displayName: profile.displayName,
+      bio: profile.bio,
+      location: profile.location,
+      website: profile.website
+    });
+    setIsEditing(true);
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      // In real app, call API to update profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update user context if editing own profile
+      if (isOwnProfile) {
+        updateUser(editData);
+      }
+      
+      setIsEditing(false);
+      alert('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile. Please try again.');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditData({});
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -82,7 +123,17 @@ const ProfilePage = () => {
             <div className="flex-1">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-black mb-2">{profile.displayName}</h1>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editData.displayName}
+                      onChange={(e) => setEditData(prev => ({ ...prev, displayName: e.target.value }))}
+                      className="text-3xl font-bold text-black mb-2 border border-gray-300 rounded px-2 py-1"
+                    />
+                  ) : (
+                    <h1 className="text-3xl font-bold text-black mb-2">{profile.displayName}</h1>
+                  )}
+                  
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                     <span className={`px-2 py-1 rounded-full text-xs ${
                       profile.role === 'translator' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
@@ -97,16 +148,87 @@ const ProfilePage = () => {
                 </div>
                 
                 {isOwnProfile && (
-                  <button className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                    <FontAwesomeIcon icon={faCog} className="mr-2" size="sm" />
-                    Edit Profile
-                  </button>
+                  <div className="flex space-x-2">
+                    {isEditing ? (
+                      <>
+                        <button
+                          onClick={handleSaveProfile}
+                          className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                        >
+                          <FontAwesomeIcon icon={faSave} className="mr-2" size="sm" />
+                          Save
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                        >
+                          <FontAwesomeIcon icon={faTimes} className="mr-2" size="sm" />
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={handleEditProfile}
+                        className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      >
+                        <FontAwesomeIcon icon={faEdit} className="mr-2" size="sm" />
+                        Edit Profile
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
               
               {profile.bio && (
-                <p className="text-gray-700 mb-4">{profile.bio}</p>
+                <div className="mb-4">
+                  {isEditing ? (
+                    <textarea
+                      value={editData.bio}
+                      onChange={(e) => setEditData(prev => ({ ...prev, bio: e.target.value }))}
+                      className="w-full p-2 border border-gray-300 rounded-lg"
+                      rows={3}
+                    />
+                  ) : (
+                    <p className="text-gray-700">{profile.bio}</p>
+                  )}
+                </div>
               )}
+
+              {/* Additional Info */}
+              <div className="space-y-2 mb-4">
+                {profile.location && (
+                  <div className="text-sm text-gray-600">
+                    <strong>Location:</strong> {isEditing ? (
+                      <input
+                        type="text"
+                        value={editData.location}
+                        onChange={(e) => setEditData(prev => ({ ...prev, location: e.target.value }))}
+                        className="ml-2 border border-gray-300 rounded px-2 py-1"
+                        placeholder="Location"
+                      />
+                    ) : (
+                      profile.location
+                    )}
+                  </div>
+                )}
+                {profile.website && (
+                  <div className="text-sm text-gray-600">
+                    <strong>Website:</strong> {isEditing ? (
+                      <input
+                        type="url"
+                        value={editData.website}
+                        onChange={(e) => setEditData(prev => ({ ...prev, website: e.target.value }))}
+                        className="ml-2 border border-gray-300 rounded px-2 py-1"
+                        placeholder="Website URL"
+                      />
+                    ) : (
+                      <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {profile.website}
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div className="text-center">

@@ -17,6 +17,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminDashboard from './pages/AdminDashboard';
 import TranslatorTools from './pages/TranslatorTools';
+import NovelArchivePage from './pages/NovelArchivePage';
 import './App.css';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
           <Layout>
             <Routes>
               <Route path="/" element={<HomePage />} />
+              <Route path="/archive" element={<NovelArchivePage />} />
               <Route path="/novel/:novelSlug" element={<NovelPage />} />
               <Route path="/novel/:novelSlug/chapter-:chapterNumber" element={<ChapterPage />} />
               <Route path="/create-novel" element={<CreateNovelPage />} />
