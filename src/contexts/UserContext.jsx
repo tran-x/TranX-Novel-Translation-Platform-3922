@@ -15,7 +15,6 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading user data
     const savedUser = localStorage.getItem('tranx_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));

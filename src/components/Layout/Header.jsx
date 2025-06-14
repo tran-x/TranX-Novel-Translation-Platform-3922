@@ -1,15 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faBars, 
-  faTimes, 
-  faBell, 
-  faUser, 
-  faSignOutAlt, 
-  faPlus,
-  faCog
-} from '@fortawesome/free-solid-svg-icons';
+import { faBars, faTimes, faBell, faUser, faSignOutAlt, faCog } from '@fortawesome/free-solid-svg-icons';
 import { useUser } from '../../contexts/UserContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import NotificationDropdown from '../Notifications/NotificationDropdown';
@@ -39,6 +31,9 @@ const Header = () => {
           <nav className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-gray-700 hover:text-black transition-colors">
               Home
+            </Link>
+            <Link to="/archive" className="text-gray-700 hover:text-black transition-colors">
+              Archive
             </Link>
             {isTranslator && (
               <>
@@ -139,6 +134,13 @@ const Header = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
+              </Link>
+              <Link
+                to="/archive"
+                className="text-gray-700 hover:text-black transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Archive
               </Link>
               {isTranslator && (
                 <>

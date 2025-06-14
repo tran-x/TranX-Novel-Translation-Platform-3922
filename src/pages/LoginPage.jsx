@@ -15,7 +15,7 @@ const LoginPage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    setError(''); // Clear error when user types
+    setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -24,10 +24,8 @@ const LoginPage = () => {
     setError('');
 
     try {
-      // Mock authentication - in real app, call API
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Mock user data based on credentials
       let userData;
       if (formData.username === 'X' && formData.password === 'GagoPassword#081005') {
         userData = {

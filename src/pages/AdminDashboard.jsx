@@ -6,7 +6,10 @@ import {
   faComments, 
   faChartLine, 
   faCheck, 
-  faTimes 
+  faTimes,
+  faUserShield,
+  faServer,
+  faDatabase
 } from '@fortawesome/free-solid-svg-icons';
 import { useUser } from '../contexts/UserContext';
 
@@ -25,12 +28,13 @@ const AdminDashboard = () => {
     );
   }
 
-  // Mock data
   const stats = {
     totalUsers: 1247,
     totalNovels: 156,
     totalChapters: 12456,
-    pendingApplications: 8
+    pendingApplications: 8,
+    serverStatus: 'Online',
+    systemLoad: '23%'
   };
 
   const pendingApplications = [
@@ -71,9 +75,15 @@ const AdminDashboard = () => {
     }
   ];
 
+  const systemLogs = [
+    { time: '2024-01-16 14:30', level: 'INFO', message: 'New user registered: bookworm' },
+    { time: '2024-01-16 14:25', level: 'INFO', message: 'Chapter published: Coiling Dragon Ch. 21' },
+    { time: '2024-01-16 14:20', level: 'WARN', message: 'High memory usage detected' },
+    { time: '2024-01-16 14:15', level: 'INFO', message: 'Translator application submitted' }
+  ];
+
   const handleApplicationAction = (applicationId, action) => {
     console.log(`${action} application ${applicationId}`);
-    // In real app, call API to approve/reject application
   };
 
   return (
@@ -174,6 +184,16 @@ const AdminDashboard = () => {
               >
                 Users
               </button>
+              <button
+                onClick={() => setActiveTab('system')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'system'
+                    ? 'border-black text-black'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                System
+              </button>
             </nav>
           </div>
         </div>
@@ -201,19 +221,19 @@ const AdminDashboard = () => {
               </div>
 
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-black mb-4">Popular Novels</h3>
+                <h3 className="text-lg font-bold text-black mb-4">System Status</h3>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-700">Coiling Dragon</span>
-                    <span className="text-sm font-medium text-black">2.3k reads</span>
+                    <span className="text-sm text-gray-700">Server Status</span>
+                    <span className="text-sm font-medium text-green-600">{stats.serverStatus}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-700">The Legendary Mechanic</span>
-                    <span className="text-sm font-medium text-black">1.8k reads</span>
+                    <span className="text-sm text-gray-700">System Load</span>
+                    <span className="text-sm font-medium text-black">{stats.systemLoad}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-700">Overlord</span>
-                    <span className="text-sm font-medium text-black">1.2k reads</span>
+                    <span className="text-sm text-gray-700">Database</span>
+                    <span className="text-sm font-medium text-green-600">Healthy</span>
                   </div>
                 </div>
               </div>
@@ -338,6 +358,50 @@ const AdminDashboard = () => {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'system' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-bold text-black mb-4">System Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <FontAwesomeIcon icon={faServer} size="2x" className="text-blue-600 mb-2" />
+                    <p className="text-sm text-gray-500">Server Status</p>
+                    <p className="font-semibold text-green-600">Online</p>
+                  </div>
+                  <div className="text-center">
+                    <FontAwesomeIcon icon={faDatabase} size="2x" className="text-green-600 mb-2" />
+                    <p className="text-sm text-gray-500">Database</p>
+                    <p className="font-semibold text-green-600">Healthy</p>
+                  </div>
+                  <div className="text-center">
+                    <FontAwesomeIcon icon={faUserShield} size="2x" className="text-purple-600 mb-2" />
+                    <p className="text-sm text-gray-500">Security</p>
+                    <p className="font-semibold text-green-600">Active</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-bold text-black mb-4">System Logs</h3>
+                <div className="space-y-3">
+                  {systemLogs.map((log, index) => (
+                    <div key={index} className="flex items-center space-x-3 py-2 border-b border-gray-100">
+                      <span className="text-xs text-gray-500 w-32">{log.time}</span>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        log.level === 'INFO' ? 'bg-blue-100 text-blue-800' :
+                        log.level === 'WARN' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {log.level}
+                      </span>
+                      <span className="text-sm text-gray-700">{log.message}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
