@@ -10,7 +10,9 @@ import {
   faPalette,
   faGlobe,
   faSave,
-  faTrash
+  faTrash,
+  faCamera,
+  faUpload
 } from '@fortawesome/free-solid-svg-icons';
 import { useUser } from '../contexts/UserContext';
 
@@ -19,12 +21,15 @@ const AccountPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatar || null);
   const [profileData, setProfileData] = useState({
     username: user?.username || '',
     email: user?.email || '',
     displayName: user?.displayName || '',
     bio: user?.bio || '',
-    avatar: null
+    location: user?.location || '',
+    website: user?.website || ''
   });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -56,12 +61,32 @@ const AccountPage = () => {
     );
   }
 
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setAvatarPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      updateUser(profileData);
+      
+      const updatedData = { ...profileData };
+      if (avatarFile) {
+        // In real app, upload avatar to server and get URL
+        updatedData.avatar = avatarPreview;
+      }
+      
+      updateUser(updatedData);
+      setAvatarFile(null);
       alert('Profile updated successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -152,6 +177,36 @@ const AccountPage = () => {
                 <div>
                   <h2 className="text-xl font-bold text-black mb-6">Profile Information</h2>
                   <form onSubmit={handleProfileSubmit} className="space-y-6">
+                    {/* Avatar Upload */}
+                    <div className="flex items-center space-x-6">
+                      <div className="relative">
+                        <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                          {avatarPreview ? (
+                            <img 
+                              src={avatarPreview} 
+                              alt="Profile" 
+                              className="w-20 h-20 rounded-full object-cover" 
+                            />
+                          ) : (
+                            <FontAwesomeIcon icon={faUser} size="2x" className="text-gray-500" />
+                          )}
+                        </div>
+                        <label className="absolute bottom-0 right-0 bg-black text-white p-1.5 rounded-full cursor-pointer hover:bg-gray-800 transition-colors">
+                          <FontAwesomeIcon icon={faCamera} size="sm" />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-black">Profile Picture</h3>
+                        <p className="text-sm text-gray-500">Upload a new avatar for your profile</p>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-black mb-2">
@@ -187,6 +242,30 @@ const AccountPage = () => {
                         value={profileData.displayName}
                         onChange={(e) => setProfileData(prev => ({ ...prev, displayName: e.target.value }))}
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-2">
+                        Location
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.location}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                        placeholder="Your location"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-2">
+                        Website
+                      </label>
+                      <input
+                        type="url"
+                        value={profileData.website}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, website: e.target.value }))}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                        placeholder="https://your-website.com"
                       />
                     </div>
                     <div>

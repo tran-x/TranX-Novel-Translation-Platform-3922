@@ -6,10 +6,11 @@ import {
   faBook, 
   faCalendar, 
   faHeart, 
-  faCog,
   faEdit,
   faSave,
-  faTimes
+  faTimes,
+  faCamera,
+  faUpload
 } from '@fortawesome/free-solid-svg-icons';
 import { useUser } from '../contexts/UserContext';
 
@@ -20,21 +21,24 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('novels');
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
   // Mock profile data
   const profile = {
     username: username,
-    displayName: username === 'rwx' ? 'RWX' : username,
-    role: username === 'rwx' ? 'translator' : 'reader',
+    displayName: username === 'rwx' ? 'RWX' : username === 'X' ? 'Administrator' : username,
+    role: username === 'rwx' ? 'translator' : username === 'X' ? 'admin' : 'reader',
     joinDate: new Date('2023-01-15'),
-    bio: username === 'rwx' ? 'Professional translator specializing in Chinese web novels. Bringing you the best stories from the East.' : 'Avid reader of translated novels.',
-    avatar: null,
-    location: username === 'rwx' ? 'United States' : 'Unknown',
+    bio: username === 'rwx' ? 'Professional translator specializing in Chinese web novels. Bringing you the best stories from the East.' : 
+         username === 'X' ? 'Platform Administrator managing TranX community.' : 'Avid reader of translated novels.',
+    avatar: user?.avatar || null,
+    location: username === 'rwx' ? 'United States' : username === 'X' ? 'Global' : 'Unknown',
     website: username === 'rwx' ? 'https://rwxtranslations.com' : '',
     stats: {
       novelsTranslated: username === 'rwx' ? 3 : 0,
       chaptersTranslated: username === 'rwx' ? 245 : 0,
-      followers: username === 'rwx' ? 1250 : 12,
+      followers: username === 'rwx' ? 1250 : username === 'X' ? 5000 : 12,
       following: 15
     },
     novels: username === 'rwx' ? [
@@ -73,6 +77,18 @@ const ProfilePage = () => {
 
   const isOwnProfile = user?.username === username;
 
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setAvatarPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleEditProfile = () => {
     setEditData({
       displayName: profile.displayName,
@@ -80,6 +96,7 @@ const ProfilePage = () => {
       location: profile.location,
       website: profile.website
     });
+    setAvatarPreview(profile.avatar);
     setIsEditing(true);
   };
 
@@ -88,12 +105,20 @@ const ProfilePage = () => {
       // In real app, call API to update profile
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      const updatedData = { ...editData };
+      if (avatarFile) {
+        // In real app, upload avatar to server and get URL
+        updatedData.avatar = avatarPreview;
+      }
+      
       // Update user context if editing own profile
       if (isOwnProfile) {
-        updateUser(editData);
+        updateUser(updatedData);
       }
       
       setIsEditing(false);
+      setAvatarFile(null);
+      setAvatarPreview(null);
       alert('Profile updated successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -104,6 +129,8 @@ const ProfilePage = () => {
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditData({});
+    setAvatarFile(null);
+    setAvatarPreview(null);
   };
 
   return (
@@ -112,11 +139,31 @@ const ProfilePage = () => {
         {/* Profile Header */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-              {profile.avatar ? (
-                <img src={profile.avatar} alt={profile.displayName} className="w-24 h-24 rounded-full" />
-              ) : (
-                <FontAwesomeIcon icon={faUser} size="2x" className="text-gray-500" />
+            <div className="relative">
+              <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                {(isEditing && avatarPreview) || profile.avatar ? (
+                  <img 
+                    src={isEditing && avatarPreview ? avatarPreview : profile.avatar} 
+                    alt={profile.displayName} 
+                    className="w-24 h-24 rounded-full object-cover" 
+                  />
+                ) : (
+                  <FontAwesomeIcon icon={faUser} size="2x" className="text-gray-500" />
+                )}
+              </div>
+              
+              {isEditing && (
+                <div className="absolute bottom-0 right-0">
+                  <label className="bg-black text-white p-2 rounded-full cursor-pointer hover:bg-gray-800 transition-colors">
+                    <FontAwesomeIcon icon={faCamera} size="sm" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
               )}
             </div>
             
@@ -136,9 +183,11 @@ const ProfilePage = () => {
                   
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                     <span className={`px-2 py-1 rounded-full text-xs ${
-                      profile.role === 'translator' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                      profile.role === 'translator' ? 'bg-blue-100 text-blue-800' : 
+                      profile.role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {profile.role === 'translator' ? 'Translator' : 'Reader'}
+                      {profile.role === 'translator' ? 'Translator' : 
+                       profile.role === 'admin' ? 'Administrator' : 'Reader'}
                     </span>
                     <span className="flex items-center">
                       <FontAwesomeIcon icon={faCalendar} className="mr-1" size="sm" />
@@ -256,7 +305,7 @@ const ProfilePage = () => {
         <div className="mb-8">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
-              {profile.role === 'translator' && (
+              {(profile.role === 'translator' || profile.role === 'admin') && (
                 <button
                   onClick={() => setActiveTab('novels')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -266,7 +315,7 @@ const ProfilePage = () => {
                   }`}
                 >
                   <FontAwesomeIcon icon={faBook} className="inline mr-2" size="sm" />
-                  Translated Novels
+                  {profile.role === 'admin' ? 'Managed Novels' : 'Translated Novels'}
                 </button>
               )}
               <button
@@ -286,9 +335,11 @@ const ProfilePage = () => {
 
         {/* Tab Content */}
         <div>
-          {activeTab === 'novels' && profile.role === 'translator' && (
+          {activeTab === 'novels' && (profile.role === 'translator' || profile.role === 'admin') && (
             <div>
-              <h2 className="text-xl font-bold text-black mb-6">Translated Novels</h2>
+              <h2 className="text-xl font-bold text-black mb-6">
+                {profile.role === 'admin' ? 'Managed Novels' : 'Translated Novels'}
+              </h2>
               {profile.novels.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {profile.novels.map((novel) => (
@@ -315,7 +366,9 @@ const ProfilePage = () => {
               ) : (
                 <div className="text-center py-12">
                   <FontAwesomeIcon icon={faBook} size="3x" className="mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-600">No translated novels yet</p>
+                  <p className="text-gray-600">
+                    {profile.role === 'admin' ? 'No novels managed yet' : 'No translated novels yet'}
+                  </p>
                 </div>
               )}
             </div>

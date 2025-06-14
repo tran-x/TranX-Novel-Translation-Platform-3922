@@ -11,24 +11,7 @@ export const useNotifications = () => {
 };
 
 export const NotificationProvider = ({ children }) => {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: 'new_novel',
-      title: 'New Novel Published',
-      message: 'The Legendary Mechanic has been published',
-      timestamp: new Date(),
-      read: false
-    },
-    {
-      id: 2,
-      type: 'new_chapter',
-      title: 'New Chapter Available',
-      message: 'Chapter 45 of Coiling Dragon is now available',
-      timestamp: new Date(Date.now() - 3600000),
-      read: false
-    }
-  ]);
+  const [notifications, setNotifications] = useState([]);
 
   const markAsRead = (id) => {
     setNotifications(prev => 
@@ -46,7 +29,12 @@ export const NotificationProvider = ({ children }) => {
 
   const addNotification = (notification) => {
     setNotifications(prev => [
-      { ...notification, id: Date.now(), read: false, timestamp: new Date() },
+      {
+        ...notification,
+        id: Date.now(),
+        read: false,
+        timestamp: new Date()
+      },
       ...prev
     ]);
   };

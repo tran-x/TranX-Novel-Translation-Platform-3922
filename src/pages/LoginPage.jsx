@@ -6,7 +6,7 @@ const LoginPage = () => {
   const { login } = useUser();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: ''
   });
   const [loading, setLoading] = useState(false);
@@ -26,39 +26,39 @@ const LoginPage = () => {
     try {
       // Mock authentication - in real app, call API
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock user data based on email
+
+      // Mock user data based on credentials
       let userData;
-      if (formData.email === 'admin@tranx.com') {
+      if (formData.username === 'X' && formData.password === 'GagoPassword#081005') {
         userData = {
           id: 1,
-          username: 'admin',
-          email: formData.email,
+          username: 'X',
+          email: 'admin@tranx.com',
           role: 'admin',
           displayName: 'Administrator'
         };
-      } else if (formData.email === 'rwx@translator.com') {
+      } else if (formData.username === 'rwx') {
         userData = {
           id: 2,
           username: 'rwx',
-          email: formData.email,
+          email: 'rwx@translator.com',
           role: 'translator',
           displayName: 'RWX'
         };
       } else {
         userData = {
           id: 3,
-          username: 'reader',
-          email: formData.email,
+          username: formData.username,
+          email: `${formData.username}@example.com`,
           role: 'reader',
-          displayName: 'Reader'
+          displayName: formData.username
         };
       }
 
       login(userData);
       navigate('/');
     } catch (error) {
-      setError('Invalid email or password');
+      setError('Invalid username or password');
     } finally {
       setLoading(false);
     }
@@ -73,34 +73,29 @@ const LoginPage = () => {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{' '}
-            <Link
-              to="/register"
-              className="font-medium text-black hover:underline"
-            >
+            <Link to="/register" className="font-medium text-black hover:underline">
               create a new account
             </Link>
           </p>
         </div>
-        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-black mb-2">
-                Email address
+              <label htmlFor="username" className="block text-sm font-medium text-black mb-2">
+                Username
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
                 required
-                value={formData.email}
+                value={formData.username}
                 onChange={handleInputChange}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                placeholder="Enter your email"
+                placeholder="Enter your username"
               />
             </div>
-            
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-black mb-2">
                 Password
@@ -124,16 +119,6 @@ const LoginPage = () => {
               <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-sm text-blue-600 mb-2">Demo accounts:</p>
-            <ul className="text-xs text-blue-600 space-y-1">
-              <li>• Admin: admin@tranx.com</li>
-              <li>• Translator: rwx@translator.com</li>
-              <li>• Reader: any other email</li>
-              <li>• Password: any text</li>
-            </ul>
-          </div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">
