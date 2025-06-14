@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Allow crawling of main content
+Allow: /novel/
+Allow: /archive
+Allow: /profile/
+
+# Disallow private/admin areas
+Disallow: /admin
+Disallow: /account
+Disallow: /edit-*
+Disallow: /create-*
+Disallow: /translator-tools
+
+# Sitemap location
+Sitemap: https://tranx.com/sitemap.xml
